@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/mydb
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        search:
+          schema_management:
+            strategy: create
+          backend:
+            uris: http://localhost:9200
+            read_timeout: 60000
+            minimal_required_status_wait_timeout: 30000
+            max_connections: 20
+            max_connections_per_route: 10
