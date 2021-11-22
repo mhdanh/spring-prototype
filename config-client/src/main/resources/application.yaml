@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: config-client
+  profiles:
+    active: dev
+  config:
+    import: optional:configserver:http://localhost:8888/
+
+
+--- # Enables dev to run with local config server, this will override dev properties defined above
+spring:
+  config:
+    import: optional:configserver:http://localhost:8888/
+    activate:
+      on-profile: dev

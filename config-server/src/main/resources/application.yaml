@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${HOME}/me/repo/spring-prototype
+          search-paths: "config-server/git-config"
+server:
+  port: 8888
