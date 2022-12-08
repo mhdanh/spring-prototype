@@ -1,0 +1,64 @@
+package com.mhdanh.masterslave.config;
+
+import com.mhdanh.masterslave.context.DatabaseEnvironment;
+import com.mhdanh.masterslave.datasource.MasterSlaveRoutingDataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
+@Configuration
+public class DataSourceConfiguration {
+
+    @Bean
+    public DataSource dataSource(){
+        MasterSlaveRoutingDataSource masterSlaveRoutingDataSource = new MasterSlaveRoutingDataSource();
+        Map<Object, Object> targetDataSources = new HashMap<>();
+        targetDataSources.put(DatabaseEnvironment.UPDATABLE, masterDataSource());
+        targetDataSources.put(DatabaseEnvironment.READONLY1, slaveDataSource().get(0));
+        targetDataSources.put(DatabaseEnvironment.READONLY2, slaveDataSource().get(1));
+        masterSlaveRoutingDataSource.setTargetDataSources(targetDataSources);
+        // Set as all transaction point to master
+        masterSlaveRoutingDataSource.setDefaultTargetDataSource(masterDataSource());
+        return masterSlaveRoutingDataSource;
+    }
+
+    public DataSource masterDataSource() {
+        DataSourceProperties master = masterPropertyDataSource();
+        HikariDataSource hikariDataSource = new HikariDataSource();
+        hikariDataSource.setJdbcUrl(master.getUrl());
+        hikariDataSource.setUsername(master.getUsername());
+        hikariDataSource.setPassword(master.getPassword());
+        return hikariDataSource;
+    }
+
+    public List<DataSource> slaveDataSource() {
+        return slavePropertyDataSource().stream().map(slave -> {
+            HikariDataSource hikariDataSource = new HikariDataSource();
+            hikariDataSource.setJdbcUrl(slave.getUrl());
+            hikariDataSource.setUsername(slave.getUsername());
+            hikariDataSource.setPassword(slave.getPassword());
+            return hikariDataSource;
+        }).collect(Collectors.toList());
+    }
+
+    @ConfigurationProperties(prefix = "spring.master")
+    @Bean
+    public DataSourceProperties masterPropertyDataSource() {
+        return new DataSourceProperties();
+    }
+
+    @ConfigurationProperties(prefix = "spring.slaves")
+    @Bean
+    public List<DataSourceProperties> slavePropertyDataSource() {
+        return new ArrayList<>();
+    }
+}

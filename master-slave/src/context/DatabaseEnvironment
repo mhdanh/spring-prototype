@@ -1,0 +1,7 @@
+package com.mhdanh.masterslave.context;
+
+public enum DatabaseEnvironment {
+    UPDATABLE,
+    READONLY1,
+    READONLY2;
+}
